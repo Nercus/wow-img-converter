@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+@plugin "daisyui" {
+  themes:
+    corporate --default,
+    business --prefersdark;
+}
+
+body {
+  font-family: 'Montserrat Variable', sans-serif;
+}
