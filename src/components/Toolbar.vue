@@ -7,7 +7,7 @@
           <SolarFolderWithFilesLinear />
         </button>
       </div>
-      <span class="text-right">{{ completed.size }}/{{ paths.length }} Files converted</span>
+      <span class="text-right">{{ completed.size }}/{{ paths.length }} Files processed</span>
     </div>
     <div class="flex-1" />
     <FormatSelect />
