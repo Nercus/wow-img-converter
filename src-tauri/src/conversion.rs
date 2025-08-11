@@ -22,7 +22,7 @@ pub fn convert_to_blp(input: &str, output: &str) -> Result<(), Box<dyn std::erro
     let blp = image_to_blp(
         image,
         false,
-        BlpTarget::Blp2(Blp2Format::Dxt1 {
+        BlpTarget::Blp2(Blp2Format::Dxt5 {
             has_alpha: true,
             compress_algorithm: DxtAlgorithm::ClusterFit,
         }),
