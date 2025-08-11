@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { basename, join } from '@tauri-apps/api/path'
 import { defineStore } from 'pinia'
 
 export const useFilesStore = defineStore('files', () => {
@@ -44,26 +45,33 @@ export const useFilesStore = defineStore('files', () => {
     }
   }
 
-  function convert() {
+  async function convert() {
     listen('conversion-status', (a: { payload: string }) => {
-      const payload = a.payload?.split(':')
-      const status = payload[0]
-      const source = payload[1]
+      const payload = JSON.parse(a.payload) as { status: string, source: string, target: string }
+
+      const { status, source } = payload
       if (status !== 'completed' || !source) {
         errored.value.set(source || 'Unknown source', true)
-        console.error(`Conversion failed for ${payload.join(':')}: ${status}`)
+        console.error(`Conversion failed for source: ${source}, status: ${status}`)
         return
       }
       completed.value.set(source, true)
     })
     for (const path of paths.value) {
-      const fileName = path.split('/').pop()!.split('.').slice(0, -1).join('.')
-      invoke('convert', {
-        sourcePath: path,
-        targetPath: `${outputPath.value}/${fileName}.${targetFormat.value}`,
-        sourceFormat: path.split('.').pop() || '',
-        targetFormat: targetFormat.value,
-      })
+      const base = await basename(path)
+      const fileName = base.split('.').slice(0, -1).join('.')
+      try {
+        invoke('convert', {
+          sourcePath: path,
+          targetPath: await join(outputPath.value, `${fileName}.${targetFormat.value}`),
+          sourceFormat: path.split('.').pop() || '',
+          targetFormat: targetFormat.value,
+        })
+      }
+      catch (error) {
+        console.error(`Error converting file ${path}:`, error)
+        errored.value.set(path, true)
+      }
     }
   }
 

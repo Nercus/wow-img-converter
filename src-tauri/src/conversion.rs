@@ -1,6 +1,7 @@
 use image::imageops::FilterType;
 use image::ImageReader;
 use rayon::spawn;
+use serde_json::json;
 use tauri::{AppHandle, Emitter};
 
 use wow_blp::{
@@ -58,11 +59,12 @@ pub fn convert(
             eprintln!("Error converting {} to {}: {}", source_path, target_path, e);
         }
 
-        let payload = if is_ok {
-            format!("completed:{}:{}", source_path, target_path)
-        } else {
-            format!("error:{}:{}", source_path, target_path)
-        };
+        let payload = json!({
+            "status": if is_ok { "completed" } else { "error" },
+            "source": source_path,
+            "target": target_path
+        })
+        .to_string();
 
         // Emit event to frontend
         app.emit("conversion-status", payload).unwrap();
