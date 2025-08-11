@@ -1,63 +1,31 @@
 <template>
   <Transition name="fade">
-    <div v-if="isHovered" class="p-2 size-full">
+    <div v-if="isHovered || isLoading" class="p-2 size-full">
       <div class="flex justify-center items-center bg-base-100/80 border-2 border-dashed rounded-lg size-full">
-        <SolarWallpaperLinear class="size-1/3" />
+        <div v-if="isLoading" class="flex flex-col justify-center items-center w-full">
+          <SolarBlackHoleLinear class="size-1/4 animate-spin" />
+          <span class="text-lg">Reading files...</span>
+        </div>
+        <template v-else>
+          <SolarWallpaperLinear class="size-1/3" />
+        </template>
       </div>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
+import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { readDir, stat } from '@tauri-apps/plugin-fs'
 
 const emits = defineEmits<{
   (e: 'drop', files: string[]): void
 }>()
 const isHovered = ref(false)
-
-const ALLOWED_EXTENSIONS = ['.blp', '.png', '.tga', '.svg']
-
-function hasAllowedExtension(filePath: string): boolean {
-  return ALLOWED_EXTENSIONS.some(ext => filePath.toLowerCase().endsWith(ext))
-}
+const isLoading = ref(false)
 
 async function getFileList(paths: string[]) {
-  const filePromises = paths.map(async (path) => {
-    const fileStat = await stat(path)
-    if (fileStat.isFile) {
-      return hasAllowedExtension(path) ? [path] : []
-    }
-    else if (fileStat.isDirectory) {
-      const dirFiles = await getFilesInDirectory(path)
-      const filteredDirFiles = await Promise.all(
-        dirFiles.map(async (file) => {
-          const fileStat = await stat(file)
-          return fileStat.isFile && hasAllowedExtension(file) ? file : null
-        }),
-      )
-      return filteredDirFiles.filter((file): file is string => file !== null)
-    }
-    return []
-  })
-
-  const results = await Promise.all(filePromises)
-  return results.flat()
-}
-function getFilesInDirectory(path: string): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    readDir(path)
-      .then((entries) => {
-        const files = entries
-          .filter(entry => !entry.name.startsWith('.')) // Skip hidden files
-          .map((entry) => {
-            return `${path}/${entry.name}`
-          })
-        resolve(files)
-      })
-      .catch(reject)
-  })
+  return await invoke<string[]>('get_allowed_files', { paths })
 }
 
 let unlisten: (() => void) | undefined
@@ -67,7 +35,9 @@ onMounted(async () => {
       isHovered.value = true
     }
     else if (event.payload.type === 'drop') {
+      isLoading.value = true
       emits('drop', await getFileList(event.payload.paths))
+      isLoading.value = false
       isHovered.value = false
     }
     else {
