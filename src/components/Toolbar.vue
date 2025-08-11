@@ -2,13 +2,14 @@
   <div class="relative flex flex-row justify-between items-center bg-base-100 inner-shadow px-4 border-t border-base-content/20 w-full h-16">
     <div class="flex flex-row items-center gap-4">
       <div class="join">
-        <input v-model="outputPath" type="text" class="min-w-xs input join-item input-sm" placeholder="Set output path">
+        <input v-model="outputPath" type="text" class="input join-item input-sm" placeholder="Set output path">
         <button class="btn btn-soft join-item btn-square btn-sm" @click="selectFolder">
           <SolarFolderWithFilesLinear />
         </button>
       </div>
-      <span>{{ paths.length }} Files</span>
+      <span class="text-right">{{ completed.size }}/{{ paths.length }} Files converted</span>
     </div>
+    <div class="flex-1" />
     <FormatSelect />
     <button class="btn btn-primary" :disabled="!allowConversion" @click="filesStore.convert()">
       Convert
@@ -25,7 +26,7 @@ import { storeToRefs } from 'pinia'
 import { useFilesStore } from '../store/store'
 
 const filesStore = useFilesStore()
-const { paths, outputPath, isConverting, targetFormat } = storeToRefs(filesStore)
+const { paths, outputPath, isConverting, targetFormat, completed } = storeToRefs(filesStore)
 
 const allowConversion = computed(() => {
   return paths.value.length > 0 && outputPath.value.trim().length > 0 && !isConverting.value && targetFormat.value !== ''
