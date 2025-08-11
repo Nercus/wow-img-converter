@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { basename, join } from '@tauri-apps/api/path'
+import { push } from 'notivue'
 import { defineStore } from 'pinia'
 
 export const useFilesStore = defineStore('files', () => {
@@ -8,8 +9,7 @@ export const useFilesStore = defineStore('files', () => {
   const outputPath = ref<string>('')
   const isConverting = ref<boolean>(false)
   const targetFormat = ref<string>('')
-  const completed = ref<Map<string, boolean>>(new Map())
-  const errored = ref<Map<string, boolean>>(new Map())
+  const completed = ref<Map<string, boolean>>(new Map()) // a map to track completed conversions boolean shows whether the conversion for a file was successful
 
   function reset() {
     paths.value = []
@@ -17,7 +17,6 @@ export const useFilesStore = defineStore('files', () => {
     isConverting.value = false
     targetFormat.value = ''
     completed.value.clear()
-    errored.value.clear()
   }
 
   function setOutputPath(path: string) {
@@ -46,12 +45,13 @@ export const useFilesStore = defineStore('files', () => {
   }
 
   async function convert() {
+    isConverting.value = true
     listen('conversion-status', (a: { payload: string }) => {
       const payload = JSON.parse(a.payload) as { status: string, source: string, target: string }
 
       const { status, source } = payload
       if (status !== 'completed' || !source) {
-        errored.value.set(source || 'Unknown source', true)
+        completed.value.set(source || 'Unknown source', false)
         console.error(`Conversion failed for source: ${source}, status: ${status}`)
         push.error({
           title: 'Conversion Error',
@@ -60,9 +60,12 @@ export const useFilesStore = defineStore('files', () => {
         return
       }
       completed.value.set(source, true)
+      if (completed.value.size === paths.value.length) {
+        isConverting.value = false
         push.success({
           title: 'Conversion Completed',
         })
+      }
     })
     for (const path of paths.value) {
       const base = await basename(path)
@@ -77,7 +80,7 @@ export const useFilesStore = defineStore('files', () => {
       }
       catch (error) {
         console.error(`Error converting file ${path}:`, error)
-        errored.value.set(path, true)
+        completed.value.set(path, false)
       }
     }
   }
@@ -88,7 +91,6 @@ export const useFilesStore = defineStore('files', () => {
     isConverting,
     targetFormat,
     completed,
-    errored,
     setOutputPath,
     addPaths,
     clearPaths,
