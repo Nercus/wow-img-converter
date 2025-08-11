@@ -11,6 +11,14 @@ export const useFilesStore = defineStore('files', () => {
   const targetFormat = ref<string>('')
   const completed = ref<Map<string, boolean>>(new Map()) // a map to track completed conversions boolean shows whether the conversion for a file was successful
 
+  async function getAllImageDimensions() {
+    // TODO: exchange the BLP format to BLP Uncompressed and BLP Compressed
+    // BLP compressed requires width and height to be a power of 2 and mipmaps
+    // BLP uncompressed doesn't need that, but is larger in size
+    const dims = await invoke('get_image_dimensions', { paths: paths.value })
+    console.log(dims)
+  }
+
   function reset() {
     paths.value = []
     outputPath.value = ''
@@ -97,5 +105,6 @@ export const useFilesStore = defineStore('files', () => {
     removePath,
     convert,
     reset,
+    getAllImageDimensions,
   }
 })

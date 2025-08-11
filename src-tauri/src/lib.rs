@@ -9,7 +9,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             conversion::convert,
-            files::get_allowed_files
+            files::get_allowed_files,
+            files::get_image_dimensions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

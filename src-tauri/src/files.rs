@@ -1,3 +1,6 @@
+use image::ImageReader;
+use serde_json::json;
+
 #[tauri::command]
 pub fn get_allowed_files(paths: Vec<String>) -> Vec<String> {
     use std::fs;
@@ -34,4 +37,22 @@ pub fn get_allowed_files(paths: Vec<String>) -> Vec<String> {
         collect_files(Path::new(&path), &mut files);
     }
     files
+}
+
+#[tauri::command]
+pub fn get_image_dimensions(paths: Vec<String>) -> serde_json::Value {
+    let results: Vec<serde_json::Value> = paths
+        .into_iter()
+        .map(|path| {
+            let dims = ImageReader::open(&path)
+                .map(|reader| reader.into_dimensions())
+                .ok()
+                .and_then(|res| res.ok());
+            match dims {
+                Some((w, h)) => json!({ "path": path, "width": w, "height": h }),
+                None => json!({ "path": path, "width": null, "height": null }),
+            }
+        })
+        .collect();
+    json!(results)
 }
