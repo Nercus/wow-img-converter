@@ -1,6 +1,6 @@
 <template>
   <div class="dropdown-top dropdown dropdown-end">
-    <div class="m-1 btn" role="button" tabindex="0">
+    <div class="m-1 btn" role="button" tabindex="0" :disbled="isConverting">
       {{ targetFormat ? `Converting ${options.find(o => o.value === targetFormat)?.label}` : 'Select Format' }}
     </div>
     <ul tabindex="0" class="z-1 bg-base-100 shadow-sm p-2 rounded-box w-52 menu dropdown-content">
@@ -19,7 +19,7 @@
 import { useFilesStore } from '../store/store'
 
 const filesStore = useFilesStore()
-const { targetFormat } = storeToRefs(filesStore)
+const { targetFormat, isConverting } = storeToRefs(filesStore)
 const options = [
   { label: 'To BLP', value: 'blp' },
   { label: 'To TGA', value: 'tga' },
