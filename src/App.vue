@@ -3,8 +3,8 @@
     <Notification :item="item" />
   </Notivue>
   <div class="flex flex-col bg-base-100 size-full">
-    <div class="flex flex-row justify-between items-center bg-base-100 border-b border-base-content/20 navbar">
-      <span>
+    <div class="flex flex-row justify-between items-center gap-1 bg-base-100 border-b border-base-content/20 navbar">
+      <span class="flex-1">
         <h1 class="text-xl">
           WoW Image Converter
         </h1>
@@ -12,9 +12,20 @@
           by <a href="https://github.com/Nercus" target="_blank">Nerc</a>
         </h2>
       </span>
-      <button class="btn btn-soft btn-ghost btn-sm" @click="filesStore.reset()">
+
+      <button class="btn btn-error btn-sm" @click="filesStore.reset()">
         <SolarRestartLinear class="-scale-x-100" />
+        Reset
       </button>
+      <div class="m-0 divider divider-horizontal" />
+      <a class="btn btn-neutral btn-sm" target="_blank" href="https://github.com/Nercus/wow-img-converter">
+        <SolarCodeCircleLinear />
+      </a>
+      <label class="mx-0 swap swap-rotate btn btn-sm">
+        <input type="checkbox" class="theme-controller" value="business">
+        <SolarSun2Linear class="fill-current swap-off" />
+        <SolarMoonLinear class="fill-current swap-on" />
+      </label>
     </div>
     <div class="relative flex flex-col flex-1 justify-center items-center overflow-hidden">
       <DropZone class="absolute inset-0" @drop="onFilesDropped" />
