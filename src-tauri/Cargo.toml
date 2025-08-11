@@ -23,7 +23,6 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 wow-blp = "0.3.0"
-imagefmt = "4.0.0"
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
 image = "=0.25.6"
