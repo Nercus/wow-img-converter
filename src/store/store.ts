@@ -53,9 +53,16 @@ export const useFilesStore = defineStore('files', () => {
       if (status !== 'completed' || !source) {
         errored.value.set(source || 'Unknown source', true)
         console.error(`Conversion failed for source: ${source}, status: ${status}`)
+        push.error({
+          title: 'Conversion Error',
+          message: `Failed to convert ${source} to ${targetFormat.value}`,
+        })
         return
       }
       completed.value.set(source, true)
+        push.success({
+          title: 'Conversion Completed',
+        })
     })
     for (const path of paths.value) {
       const base = await basename(path)

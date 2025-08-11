@@ -1,4 +1,7 @@
 <template>
+  <Notivue v-slot="item">
+    <Notification :item="item" />
+  </Notivue>
   <div class="flex flex-col bg-base-100 size-full">
     <div class="flex flex-row justify-between items-center bg-base-100 border-b border-base-content/20 navbar">
       <h1 class="text-xl">
