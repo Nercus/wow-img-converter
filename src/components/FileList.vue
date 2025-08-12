@@ -1,7 +1,7 @@
 <template>
-  <div v-bind="containerProps" class="flex flex-col gap-2 p-2 w-full h-full">
+  <div v-bind="containerProps" class="p-2 w-full h-full overflow-y-auto">
     <div v-bind="wrapperProps">
-      <FileListEntry v-for="path in list" :key="path.index" :path="path.data" />
+      <FileListEntry v-for="{ data } in list" :key="data" :path="data" />
     </div>
   </div>
 </template>
@@ -17,6 +17,13 @@ const { list, containerProps, wrapperProps } = useVirtualList(
   paths,
   {
     itemHeight: 56,
+    overscan: 5,
   },
 )
+
+watchEffect(() => {
+  if (paths.value.length > 0) {
+    containerProps.onScroll()
+  }
+})
 </script>

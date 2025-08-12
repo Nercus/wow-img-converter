@@ -30,7 +30,7 @@
     <div class="relative flex flex-col flex-1 justify-center items-center overflow-hidden">
       <DropZone class="absolute inset-0" @drop="onFilesDropped" />
       <span v-if="paths.length === 0" class="flex items-center h-full">Drop files here to convert</span>
-      <FileList class="h-full" />
+      <FileList />
     </div>
     <Toolbar />
   </div>
