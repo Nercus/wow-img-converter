@@ -2,7 +2,7 @@
   <Notivue v-slot="item">
     <Notification :item="item" />
   </Notivue>
-  <div class="flex flex-col bg-base-100 size-full">
+  <div class="flex flex-col bg-base-100 size-full select-none">
     <div class="flex flex-row justify-between items-center gap-1 bg-base-100 border-b border-base-content/20 navbar">
       <span class="flex-1">
         <h1 class="text-xl">
@@ -30,7 +30,7 @@
     <div class="relative flex flex-col flex-1 justify-center items-center overflow-hidden">
       <DropZone class="absolute inset-0" @drop="onFilesDropped" />
       <span v-if="paths.length === 0" class="flex items-center h-full">Drop files here to convert</span>
-      <FileList />
+      <FileList class="h-full" />
     </div>
     <Toolbar />
   </div>
