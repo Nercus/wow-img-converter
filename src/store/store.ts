@@ -9,14 +9,12 @@ export const useFilesStore = defineStore('files', () => {
   const outputPath = ref<string>('')
   const isConverting = ref<boolean>(false)
   const targetFormat = ref<string>('')
+  const targetType = ref<string>('') // the target type for conversion, e.g. 'blp', 'png', 'jpg', etc.
   const completed = ref<Map<string, boolean>>(new Map()) // a map to track completed conversions boolean shows whether the conversion for a file was successful
 
   async function getAllImageDimensions() {
-    // TODO: exchange the BLP format to BLP Uncompressed and BLP Compressed
-    // BLP compressed requires width and height to be a power of 2 and mipmaps
-    // BLP uncompressed doesn't need that, but is larger in size
     const dims = await invoke('get_image_dimensions', { paths: paths.value })
-    console.log(dims)
+    return dims as { width: number, height: number, path: string }[]
   }
 
   function reset() {
@@ -52,7 +50,39 @@ export const useFilesStore = defineStore('files', () => {
     }
   }
 
+  function isPowerOfTwo(value: number): boolean {
+    return (value & (value - 1)) === 0 && value > 0
+  }
+
+  async function checkPaths() {
+    if (targetType.value !== 'blp_dxt') return
+    const dimensions = await getAllImageDimensions()
+    // when targetType is 'blp_dxt', we need to check if the images have dimensions with a power of two
+    // filter out the paths that do not have power of two dimensions and show a warning when something was filtered out
+    const invalidPaths = paths.value.filter((path) => {
+      const dim = dimensions.find(d => d.path === path)
+      if (!dim) return false // skip if no dimensions found
+      return !isPowerOfTwo(dim.width) || !isPowerOfTwo(dim.height)
+    })
+    if (invalidPaths.length > 0) {
+      push.warning({
+        title: 'Invalid Image Dimensions',
+        message: `The following images do not have dimensions that are a power of two and will be skipped: ${invalidPaths.map(p => p.split('/').pop()).join(', ')}`,
+      })
+      // remove the invalid paths from the list
+      paths.value = paths.value.filter(path => !invalidPaths.includes(path))
+    }
+    if (paths.value.length === 0) {
+      push.error({
+        title: 'No Valid Images',
+        message: 'No images with valid dimensions found for conversion.',
+      })
+      throw new Error('No valid images found for conversion')
+    }
+  }
+
   async function convert() {
+    await checkPaths()
     isConverting.value = true
     listen('conversion-status', (a: { payload: string }) => {
       const payload = JSON.parse(a.payload) as { status: string, source: string, target: string }
@@ -63,12 +93,14 @@ export const useFilesStore = defineStore('files', () => {
         console.error(`Conversion failed for source: ${source}, status: ${status}`)
         push.error({
           title: 'Conversion Error',
-          message: `Failed to convert ${source} to ${targetFormat.value}`,
+          message: `Failed to convert ${source ? source.split('/').pop() : 'Unknown file'} to ${targetFormat.value}`,
         })
-        return
       }
-      completed.value.set(source, true)
-      if (completed.value.size === paths.value.length) {
+      else {
+        completed.value.set(source, true)
+      }
+
+      if (completed.value.size === paths.value.length && isConverting.value) {
         isConverting.value = false
         push.success({
           title: 'Conversion Completed',
@@ -83,7 +115,7 @@ export const useFilesStore = defineStore('files', () => {
           sourcePath: path,
           targetPath: await join(outputPath.value, `${fileName}.${targetFormat.value}`),
           sourceFormat: path.split('.').pop() || '',
-          targetFormat: targetFormat.value,
+          targetFormat: targetType.value,
         })
       }
       catch (error) {
@@ -98,6 +130,7 @@ export const useFilesStore = defineStore('files', () => {
     outputPath,
     isConverting,
     targetFormat,
+    targetType,
     completed,
     setOutputPath,
     addPaths,

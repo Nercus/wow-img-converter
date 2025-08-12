@@ -11,25 +11,52 @@ use wow_blp::{
 };
 
 pub fn convert_from_blp(input: &str, output: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let blp_file = load_blp(input)?;
-    let image = blp_to_image(&blp_file, 0)?; // mipmap level 0
-    image.save(output)?;
-    Ok(())
+    let result = std::panic::catch_unwind(|| {
+        let blp_file = load_blp(input)?;
+        let image = blp_to_image(&blp_file, 0)?; // mipmap level 0
+        image.save(output)?;
+        Ok(())
+    });
+
+    match result {
+        Ok(inner) => inner,
+        Err(_) => Err("BLP conversion panicked".into()),
+    }
 }
 
-pub fn convert_to_blp(input: &str, output: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let image = image::open(input)?;
-    let blp = image_to_blp(
-        image,
-        false,
-        BlpTarget::Blp2(Blp2Format::Dxt5 {
-            has_alpha: true,
-            compress_algorithm: DxtAlgorithm::RangeFit,
-        }),
-        FilterType::Lanczos3,
-    )?;
-    save_blp(&blp, output)?;
-    Ok(())
+pub fn convert_to_blp(
+    input: &str,
+    output: &str,
+    is_compressed: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let result = std::panic::catch_unwind(|| {
+        let image = image::open(input)?;
+        let blp = if is_compressed {
+            image_to_blp(
+                image,
+                true,
+                BlpTarget::Blp2(Blp2Format::Dxt5 {
+                    has_alpha: true,
+                    compress_algorithm: DxtAlgorithm::RangeFit,
+                }),
+                FilterType::Lanczos3,
+            )?
+        } else {
+            image_to_blp(
+                image,
+                false,
+                BlpTarget::Blp2(Blp2Format::Raw3),
+                FilterType::Lanczos3,
+            )?
+        };
+        save_blp(&blp, output)?;
+        Ok::<(), Box<dyn std::error::Error>>(())
+    });
+
+    match result {
+        Ok(inner) => inner,
+        Err(_) => Err("BLP encoding panicked".into()),
+    }
 }
 
 pub fn convert_others(input: &str, output: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -49,7 +76,8 @@ pub fn convert(
     spawn(move || {
         let result = match (source_format.as_str(), target_format.as_str()) {
             ("blp", _) => convert_from_blp(&source_path, &target_path),
-            (_, "blp") => convert_to_blp(&source_path, &target_path),
+            (_, "blp_dxt") => convert_to_blp(&source_path, &target_path, true),
+            (_, "blp_raw") => convert_to_blp(&source_path, &target_path, false),
             _ => convert_others(&source_path, &target_path),
         };
 
