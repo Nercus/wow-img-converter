@@ -1,6 +1,6 @@
 [package]
 name = "wow-img-converter"
-version = "1.0.0"
+version = "1.0.2"
 description = "A Tauri App"
 authors = ["Nerc"]
 edition = "2021"
