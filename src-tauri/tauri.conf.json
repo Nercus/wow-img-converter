@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "wow-img-converter",
+        "title": "WoW Image Converter",
         "minWidth": 800,
         "minHeight": 600
       }
