@@ -1,7 +1,7 @@
 [package]
 name = "wow-img-converter"
-version = "1.0.2"
-description = "A Tauri App"
+version = "1.0.4"
+description = "A Tauri App to convert from and to blizzards image format"
 authors = ["Nerc"]
 edition = "2021"
 

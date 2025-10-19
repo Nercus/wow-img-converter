@@ -5650,7 +5650,7 @@ dependencies = [
 
 [[package]]
 name = "wow-img-converter"
-version = "1.0.2"
+version = "1.0.4"
 dependencies = [
  "image",
  "rayon",
