@@ -74,7 +74,11 @@ pub fn convert(
     target_format: String,
 ) {
     spawn(move || {
-        let result = match (source_format.as_str(), target_format.as_str()) {
+        let source_format_lower = source_format.to_lowercase();
+        let target_format_lower = target_format.to_lowercase();
+
+
+        let result = match (source_format_lower.as_str(), target_format_lower.as_str()) {
             ("blp", _) => convert_from_blp(&source_path, &target_path),
             (_, "blp_dxt") => convert_to_blp(&source_path, &target_path, true),
             (_, "blp_raw") => convert_to_blp(&source_path, &target_path, false),
